@@ -25,6 +25,6 @@ public class BookDTO {
 
 
     @NotNull
-    private String amountTotal;
+    private Integer amountTotal;
 
 }
