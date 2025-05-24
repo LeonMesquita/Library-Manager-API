@@ -17,12 +17,12 @@ public class GlobalExceptionHandler implements AuthenticationFailureHandler  {
 
     @ExceptionHandler(GenericNotFoundException.class)
     public ResponseEntity<String> handleGenericNotFound(GenericNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
     }
 
     @ExceptionHandler(GenericConflictException.class)
     public ResponseEntity<String> handleGenericConflict(GenericConflictException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
     }
 
     @Override
