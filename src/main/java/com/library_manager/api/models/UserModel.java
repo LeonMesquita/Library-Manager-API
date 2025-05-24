@@ -49,5 +49,8 @@ public class UserModel {
         this.profiles.add(profileEnum.getCode());
     }
 
+    @Column(nullable = false)
+    private boolean active = true;
+
 
 }

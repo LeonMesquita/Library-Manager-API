@@ -33,7 +33,7 @@ public class BookService {
     }
 
     public Page<BookModel> findAll(Pageable pageable) {
-        return bookRepository.findAll(pageable);
+        return bookRepository.listAllActiveBooks(pageable);
     }
 
     public BookModel findById(Long id) {
@@ -52,6 +52,13 @@ public class BookService {
         //TODO: não deixar atualizar caso a quantidade total seja menor que a quantidade de aluguéis ativos
         BeanUtils.copyProperties(dto, bookModel, "id");
         return bookRepository.save(bookModel);
+    }
+
+
+    public void delete(Long id) {
+        BookModel book = this.findById(id);
+        book.setActive(false);
+        bookRepository.save(book);
     }
 
 

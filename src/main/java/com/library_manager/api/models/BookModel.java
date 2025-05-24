@@ -33,4 +33,7 @@ public class BookModel {
 
     @Column
     private Integer amountAvailable;
+
+    @Column(nullable = false)
+    private boolean active = true;
 }

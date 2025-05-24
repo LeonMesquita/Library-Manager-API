@@ -45,8 +45,16 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK).body(bookService.findById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<BookModel> updateBook(@PathVariable Long id, @RequestBody @Valid BookDTO body) {
         return ResponseEntity.status(HttpStatus.OK).body(bookService.update(id, body));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<BookModel> deleteBook(@PathVariable Long id) {
+        bookService.delete(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
