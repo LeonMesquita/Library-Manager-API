@@ -8,6 +8,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -17,6 +19,14 @@ public class UserSpringSecurity implements UserDetails {
     private String password;
     private String email;
     private Collection<? extends GrantedAuthority> authorities;
+
+    public UserSpringSecurity(Long id, String name, String password, String email, Set<ProfileEnum> profileEnums) {
+        this.id = id;
+        this.password = password;
+        this.name = name;
+        this.email = email;
+        this.authorities = profileEnums.stream().map(x -> new SimpleGrantedAuthority(x.getDescription())).collect(Collectors.toSet());
+    }
 
     public boolean hasRole(ProfileEnum profileEnum) {
         return getAuthorities().contains(new SimpleGrantedAuthority(profileEnum.getDescription()));

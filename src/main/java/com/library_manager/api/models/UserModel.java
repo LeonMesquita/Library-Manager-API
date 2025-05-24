@@ -1,5 +1,6 @@
 package com.library_manager.api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.library_manager.api.models.enums.ProfileEnum;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ public class UserModel {
     private String name;
 
     @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(nullable = false, unique = true)
