@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class BookService {
@@ -38,6 +40,18 @@ public class BookService {
         return bookRepository.findById(id).orElseThrow(
                 () -> new GenericNotFoundException("Livro com o id " + id + " não encontrado!")
         );
+    }
+
+
+    public BookModel update(Long id, BookDTO dto) {
+        BookModel bookModel = this.findById(id);
+        Optional<BookModel> existingBook = bookRepository.findByIsbn(dto.getIsbn());
+        if (existingBook.isPresent() && !Objects.equals(existingBook.get().getId(), bookModel.getId())) {
+            throw new GenericConflictException("Já existe um livro com o ISBN " + dto.getIsbn());
+        }
+        //TODO: não deixar atualizar caso a quantidade total seja menor que a quantidade de aluguéis ativos
+        BeanUtils.copyProperties(dto, bookModel, "id");
+        return bookRepository.save(bookModel);
     }
 
 

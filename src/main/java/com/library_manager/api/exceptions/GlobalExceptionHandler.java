@@ -25,6 +25,11 @@ public class GlobalExceptionHandler implements AuthenticationFailureHandler  {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
     }
 
+    @ExceptionHandler(GenericBadRequestException.class)
+    public ResponseEntity<String> handleGenericBadRequest(GenericBadRequestException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    }
+
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
