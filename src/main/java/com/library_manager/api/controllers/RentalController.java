@@ -44,4 +44,10 @@ public class RentalController {
         return ResponseEntity.status(HttpStatus.OK).body(rentalService.approveRental(id, body));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<RentalModel> rejectRental(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(rentalService.rejectRental(id));
+    }
+
 }

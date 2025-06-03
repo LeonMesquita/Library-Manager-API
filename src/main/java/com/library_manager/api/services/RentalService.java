@@ -8,6 +8,7 @@ import com.library_manager.api.models.BookModel;
 import com.library_manager.api.models.RentalModel;
 import com.library_manager.api.models.UserModel;
 import com.library_manager.api.models.enums.StatusEnum;
+import com.library_manager.api.repositories.BookRepository;
 import com.library_manager.api.repositories.RentalRepository;
 import com.library_manager.api.security.UserSpringSecurity;
 import jakarta.validation.Valid;
@@ -32,6 +33,9 @@ public class RentalService {
 
     @Autowired
     BookService bookService;
+
+    @Autowired
+    BookRepository bookRepository;
 
     @Autowired
     UserService userService;
@@ -72,6 +76,24 @@ public class RentalService {
         rental.setRentalDate(LocalDate.now());
         rental.setExpectedReturnDate(this.convertToDate(dto.getExpectedReturnDate()));
         rental.setStatus(StatusEnum.APPROVED);
+        book.setAmountAvailable(book.getAmountAvailable() - 1);
+        bookRepository.save(book);
+        return rentalRepository.save(rental);
+
+    }
+
+    public RentalModel rejectRental(Long id) {
+        RentalModel rental = this.findById(id);
+        if (rental.getStatus() == StatusEnum.RETURNED) {
+            throw new GenericBadRequestException("Este empréstimo já foi retornado!");
+        }
+        if (rental.getStatus() == StatusEnum.APPROVED) {
+            BookModel book = rental.getBook();
+            book.setAmountAvailable(book.getAmountAvailable() + 1);
+            bookRepository.save(book);
+        }
+
+        rental.setStatus(StatusEnum.REJECTED);
         return rentalRepository.save(rental);
 
     }
@@ -90,11 +112,13 @@ public class RentalService {
 
 
     public LocalDate convertToDate(String date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy").withResolverStyle(ResolverStyle.STRICT);
+        System.out.println(date);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
 
         try {
             return LocalDate.parse(date, formatter);
         } catch (DateTimeParseException e) {
+            System.out.println(e.getMessage());
             throw new GenericBadRequestException("A data deve estar no formato dd/MM/yyyy e ser válida.");
         }
     }
