@@ -4,7 +4,11 @@ import com.library_manager.api.dtos.BookDTO;
 import com.library_manager.api.exceptions.GenericConflictException;
 import com.library_manager.api.exceptions.GenericNotFoundException;
 import com.library_manager.api.models.BookModel;
+import com.library_manager.api.models.RentalModel;
+import com.library_manager.api.models.enums.StatusEnum;
 import com.library_manager.api.repositories.BookRepository;
+import com.library_manager.api.repositories.RentalRepository;
+import com.library_manager.api.services.utils.InventoryService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,6 +23,12 @@ import java.util.Optional;
 public class BookService {
     @Autowired
     BookRepository bookRepository;
+
+    @Autowired
+    RentalRepository rentalRepository;
+
+    @Autowired
+    InventoryService inventoryService;
 
     public BookModel save(BookDTO dto) {
         boolean exists = bookRepository.existsByIsbn(dto.getIsbn());
@@ -49,8 +59,15 @@ public class BookService {
         if (existingBook.isPresent() && !Objects.equals(existingBook.get().getId(), bookModel.getId())) {
             throw new GenericConflictException("Já existe um livro com o ISBN " + dto.getIsbn());
         }
-        //TODO: não deixar atualizar caso a quantidade total seja menor que a quantidade de aluguéis ativos
+
+        List<RentalModel> approvedRentals = rentalRepository.findAllByBookAndStatus(bookModel, StatusEnum.APPROVED);
+
+        if (dto.getAmountTotal() < approvedRentals.size()) {
+            throw new GenericConflictException("A quantidade total não pode ser menor que a quantidade de aluguéis ativos!");
+        }
+
         BeanUtils.copyProperties(dto, bookModel, "id");
+        bookModel.setAmountAvailable(inventoryService.calculateAmountAvailable(bookModel));
         return bookRepository.save(bookModel);
     }
 

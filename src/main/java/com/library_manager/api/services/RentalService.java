@@ -12,6 +12,7 @@ import com.library_manager.api.models.enums.StatusEnum;
 import com.library_manager.api.repositories.BookRepository;
 import com.library_manager.api.repositories.RentalRepository;
 import com.library_manager.api.security.UserSpringSecurity;
+import com.library_manager.api.services.utils.InventoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,15 +43,21 @@ public class RentalService {
     @Autowired
     UserService userService;
 
+    @Autowired
+    InventoryService inventoryService;
+
 
     public RentalModel save(RentalDTO dto) {
         BookModel book = bookService.findById(dto.getBookId());
+        if (!book.isActive()) {
+            throw new GenericBadRequestException("Não é possível alugar um livro deletado!");
+        }
         UserSpringSecurity userSpringSecurity = (UserSpringSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserModel user = userService.findById(userSpringSecurity.getId());
 
-//        if (book.getAmountAvailable() < 1) {
-//            throw new GenericBadRequestException("Nenhum estoque disponível!");
-//        }
+        if (book.getAmountAvailable() < 1) {
+            throw new GenericBadRequestException("Nenhum estoque disponível!");
+        }
         RentalModel rental = new RentalModel();
         rental.setBook(book);
         rental.setUser(user);
@@ -80,7 +87,7 @@ public class RentalService {
         rental.setStatus(StatusEnum.APPROVED);
 
         RentalModel savedRental = rentalRepository.save(rental);
-        book.setAmountAvailable(this.calculateAmountAvailable(book));
+        book.setAmountAvailable(inventoryService.calculateAmountAvailable(book));
         bookRepository.save(book);
         return savedRental;
 
@@ -97,7 +104,7 @@ public class RentalService {
         RentalModel savedRental = rentalRepository.save(rental);
         if (prevStatus == StatusEnum.APPROVED) {
             BookModel book = rental.getBook();
-            book.setAmountAvailable(this.calculateAmountAvailable(book));
+            book.setAmountAvailable(inventoryService.calculateAmountAvailable(book));
             bookRepository.save(book);
         }
         return savedRental;
@@ -125,7 +132,7 @@ public class RentalService {
         rental.setStatus(StatusEnum.RETURNED);
         rental.setRealReturnDate(realReturnDate);
         RentalModel savedRental = rentalRepository.save(rental);
-        book.setAmountAvailable(this.calculateAmountAvailable(book));
+        book.setAmountAvailable(inventoryService.calculateAmountAvailable(book));
         bookRepository.save(book);
         return savedRental;
 
@@ -155,8 +162,4 @@ public class RentalService {
         }
     }
 
-    public Integer calculateAmountAvailable(BookModel book) {
-        List<RentalModel> approvedRentals = rentalRepository.findAllByBookAndStatus(book, StatusEnum.APPROVED);
-        return book.getAmountTotal() - approvedRentals.size();
-    }
 }
