@@ -2,6 +2,7 @@ package com.library_manager.api.controllers;
 
 import com.library_manager.api.dtos.RentalApprovalDTO;
 import com.library_manager.api.dtos.RentalDTO;
+import com.library_manager.api.dtos.RentalReturnDTO;
 import com.library_manager.api.models.RentalModel;
 import com.library_manager.api.services.RentalService;
 import jakarta.validation.Valid;
@@ -48,6 +49,12 @@ public class RentalController {
     @PutMapping("/{id}/reject")
     public ResponseEntity<RentalModel> rejectRental(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(rentalService.rejectRental(id));
+    }
+
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PutMapping("/{id}/return")
+    public ResponseEntity<RentalModel> returnRental(@PathVariable Long id, @RequestBody @Valid RentalReturnDTO body) {
+        return ResponseEntity.status(HttpStatus.OK).body(rentalService.returnRental(id, body));
     }
 
 }

@@ -2,6 +2,7 @@ package com.library_manager.api.services;
 
 import com.library_manager.api.dtos.RentalApprovalDTO;
 import com.library_manager.api.dtos.RentalDTO;
+import com.library_manager.api.dtos.RentalReturnDTO;
 import com.library_manager.api.exceptions.GenericBadRequestException;
 import com.library_manager.api.exceptions.GenericNotFoundException;
 import com.library_manager.api.models.BookModel;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.List;
 
 @Service
 public class RentalService {
@@ -76,9 +78,11 @@ public class RentalService {
         rental.setRentalDate(LocalDate.now());
         rental.setExpectedReturnDate(this.convertToDate(dto.getExpectedReturnDate()));
         rental.setStatus(StatusEnum.APPROVED);
-        book.setAmountAvailable(book.getAmountAvailable() - 1);
+
+        RentalModel savedRental = rentalRepository.save(rental);
+        book.setAmountAvailable(this.calculateAmountAvailable(book));
         bookRepository.save(book);
-        return rentalRepository.save(rental);
+        return savedRental;
 
     }
 
@@ -87,14 +91,43 @@ public class RentalService {
         if (rental.getStatus() == StatusEnum.RETURNED) {
             throw new GenericBadRequestException("Este empréstimo já foi retornado!");
         }
-        if (rental.getStatus() == StatusEnum.APPROVED) {
-            BookModel book = rental.getBook();
-            book.setAmountAvailable(book.getAmountAvailable() + 1);
-            bookRepository.save(book);
-        }
+        StatusEnum prevStatus = rental.getStatus();
 
         rental.setStatus(StatusEnum.REJECTED);
-        return rentalRepository.save(rental);
+        RentalModel savedRental = rentalRepository.save(rental);
+        if (prevStatus == StatusEnum.APPROVED) {
+            BookModel book = rental.getBook();
+            book.setAmountAvailable(this.calculateAmountAvailable(book));
+            bookRepository.save(book);
+        }
+        return savedRental;
+
+    }
+
+    public RentalModel returnRental(Long id, RentalReturnDTO dto) {
+        RentalModel rental = this.findById(id);
+        if (rental.getStatus() != StatusEnum.APPROVED) {
+            throw new GenericBadRequestException("Não é possível devolver um empréstimo que não está aprovado!");
+        }
+
+
+        LocalDate realReturnDate = this.convertToDate(dto.getRealReturnDate());
+        if (realReturnDate.isAfter(LocalDate.now())) {
+            throw new GenericBadRequestException("Não é possível atribuir uma data futura!");
+        }
+
+        if (realReturnDate.isBefore(rental.getRentalDate())) {
+            throw new GenericBadRequestException("A data de retorno não pode ser anterior à data do empréstimo!");
+        }
+
+        BookModel book = rental.getBook();
+        
+        rental.setStatus(StatusEnum.RETURNED);
+        rental.setRealReturnDate(realReturnDate);
+        RentalModel savedRental = rentalRepository.save(rental);
+        book.setAmountAvailable(this.calculateAmountAvailable(book));
+        bookRepository.save(book);
+        return savedRental;
 
     }
 
@@ -112,7 +145,6 @@ public class RentalService {
 
 
     public LocalDate convertToDate(String date) {
-        System.out.println(date);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
 
         try {
@@ -121,5 +153,10 @@ public class RentalService {
             System.out.println(e.getMessage());
             throw new GenericBadRequestException("A data deve estar no formato dd/MM/yyyy e ser válida.");
         }
+    }
+
+    public Integer calculateAmountAvailable(BookModel book) {
+        List<RentalModel> approvedRentals = rentalRepository.findAllByBookAndStatus(book, StatusEnum.APPROVED);
+        return book.getAmountTotal() - approvedRentals.size();
     }
 }
