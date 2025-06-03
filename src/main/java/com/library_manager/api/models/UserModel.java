@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.context.annotation.Profile;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,9 @@ public class UserModel {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<RentalModel> rentals;
 
     @Column(nullable = false, length = 50)
     private String name;
