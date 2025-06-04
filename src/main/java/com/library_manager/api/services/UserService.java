@@ -3,6 +3,7 @@ package com.library_manager.api.services;
 import com.library_manager.api.dtos.UserDTO;
 import com.library_manager.api.exceptions.AuthorizationException;
 import com.library_manager.api.exceptions.GenericConflictException;
+import com.library_manager.api.exceptions.GenericNotFoundException;
 import com.library_manager.api.models.UserModel;
 import com.library_manager.api.models.enums.ProfileEnum;
 import com.library_manager.api.repositories.UserRepository;
@@ -40,6 +41,12 @@ public class UserService {
         if (exists) {
             throw new GenericConflictException("Já existe um usuário com o email " + email);
         }
+    }
+
+    public UserModel findById(Long id) {
+        return userRepository.findById(id).orElseThrow(
+                () -> new GenericNotFoundException("Usuário com o id " + id + " não encontrado!")
+        );
     }
 
 
