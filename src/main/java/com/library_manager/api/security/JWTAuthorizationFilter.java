@@ -10,7 +10,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
 import java.io.IOException;
 import java.util.Objects;
 
@@ -25,7 +24,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private UsernamePasswordAuthenticationToken getAuthentication(String token) {
-        if (this.jwtUtil.isValidToken(token)) {
+        if (!Objects.equals(this.jwtUtil.isValidToken(token), "")) {
             String email = this.jwtUtil.getEmail(token);
             UserDetails user = this.userDetailsService.loadUserByUsername(email);
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
