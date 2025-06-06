@@ -44,9 +44,15 @@ public class UserService {
     }
 
     public UserModel findById(Long id) {
+        adminOrUserAuthenticated(id);
         return userRepository.findById(id).orElseThrow(
                 () -> new GenericNotFoundException("Usuário com o id " + id + " não encontrado!")
         );
+    }
+
+
+    public UserModel update(Long id, UserDTO dto) {
+        UserModel user = this.findById(id);
     }
 
 

@@ -40,6 +40,17 @@ public class RentalController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<Page<RentalModel>> getAllRentals(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        Page<RentalModel> rentals = rentalService.findAll(PageRequest.of(page, size, Sort.by(sortBy)));
+        return ResponseEntity.status(HttpStatus.OK).body(rentals);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/approve")
     public ResponseEntity<RentalModel> approveRental(@PathVariable Long id, @RequestBody @Valid RentalApprovalDTO body) {
         return ResponseEntity.status(HttpStatus.OK).body(rentalService.approveRental(id, body));

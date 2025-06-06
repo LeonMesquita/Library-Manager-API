@@ -1,64 +1,74 @@
 package com.library_manager.api.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.JWTVerifier;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.Objects;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Component
 public class JWTUtil {
     @Value("${jwt.secret}")
     private String secret;
 
+    @Getter
     @Value("${jwt.expiration}")
-    private Long expiration;
+    private Integer tokenExpirationHour;
+    @Getter
+    @Value("${jwt.refresh.expiration}")
+    private Integer refreshTokenExpirationHour;
 
-    public String generateToken(String email) {
-        SecretKey key = getKeyBySecret();
-        return Jwts.builder()
-                .header().type("JWT").and()
-                .subject(email)
-                .expiration(new Date(System.currentTimeMillis() + this.expiration))
-                .signWith(key)
-                .compact();
-    }
+    public String generateToken(String email, Integer expiration) {
 
-    public boolean isValidToken(String token) {
         try {
-            Claims claims = getClaims(token);
-            String email = claims.getSubject();
-            Date expirationDate = claims.getExpiration();
-            return email != null && expirationDate != null && new Date().before(expirationDate);
-        } catch (Exception e) {
-            return false;
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            return JWT.create()
+                    .withIssuer("auth-api")
+                    .withSubject(email)
+                    .withExpiresAt(generateExpiration(expiration))
+                    .sign(algorithm);
+        } catch (JWTCreationException exception) {
+            throw new RuntimeException("Erro ao tentar gerar o token! " + exception.getMessage());
         }
     }
 
-    private Claims getClaims(String token) {
-        SecretKey key = getKeyBySecret();
-
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    public String isValidToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("auth-api")
+                    .build();
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT.getSubject();
+        } catch (JWTVerificationException exception) {
+            return "";
+        }
     }
 
     public String getEmail(String token) {
-        Claims claims = getClaims(token);
-        if (Objects.nonNull(claims))
-            return claims.getSubject();
-
-        return null;
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("auth-api")
+                    .build();
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT.getSubject();
+        } catch (JWTVerificationException exception) {
+            return null;
+        }
     }
 
-    private SecretKey getKeyBySecret() {
-        return Keys.hmacShaKeyFor(this.secret.getBytes(StandardCharsets.UTF_8));
+    private Instant generateExpiration(Integer expiration) {
+        return LocalDateTime.now()
+                .plusHours(expiration)
+                .toInstant(ZoneOffset.of("-03:00"));
     }
+
 }

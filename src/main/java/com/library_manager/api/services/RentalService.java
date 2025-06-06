@@ -3,6 +3,7 @@ package com.library_manager.api.services;
 import com.library_manager.api.dtos.RentalApprovalDTO;
 import com.library_manager.api.dtos.RentalDTO;
 import com.library_manager.api.dtos.RentalReturnDTO;
+import com.library_manager.api.exceptions.AuthorizationException;
 import com.library_manager.api.exceptions.GenericBadRequestException;
 import com.library_manager.api.exceptions.GenericNotFoundException;
 import com.library_manager.api.models.BookModel;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class RentalService {
@@ -45,6 +47,17 @@ public class RentalService {
 
     @Autowired
     InventoryService inventoryService;
+
+    public Page<RentalModel> getMyRentals(Pageable pageable) {
+        UserSpringSecurity userSpringSecurity = (UserSpringSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserModel user = userService.findById(userSpringSecurity.getId());
+        return rentalRepository.findAllByUser(user, pageable);
+    }
+
+    public Page<RentalModel> findAll(Pageable pageable) {
+        return rentalRepository.findAll(pageable);
+    }
+
 
 
     public RentalModel save(RentalDTO dto) {
@@ -113,6 +126,11 @@ public class RentalService {
 
     public RentalModel returnRental(Long id, RentalReturnDTO dto) {
         RentalModel rental = this.findById(id);
+        UserSpringSecurity userSpringSecurity = (UserSpringSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserModel user = userService.findById(userSpringSecurity.getId());
+        if (!Objects.equals(user.getId(), rental.getUser().getId())) {
+            throw new AuthorizationException("Acesso negado!");
+        }
         if (rental.getStatus() != StatusEnum.APPROVED) {
             throw new GenericBadRequestException("Não é possível devolver um empréstimo que não está aprovado!");
         }
@@ -136,12 +154,6 @@ public class RentalService {
         bookRepository.save(book);
         return savedRental;
 
-    }
-
-    public Page<RentalModel> getMyRentals(Pageable pageable) {
-        UserSpringSecurity userSpringSecurity = (UserSpringSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserModel user = userService.findById(userSpringSecurity.getId());
-        return rentalRepository.findAllByUser(user, pageable);
     }
 
     public RentalModel findById(Long id) {

@@ -1,11 +1,10 @@
 package com.library_manager.api;
-
 import com.library_manager.api.exceptions.CustomAccessDeniedHandler;
 import com.library_manager.api.exceptions.CustomAuthenticationEntryPoint;
-import com.library_manager.api.security.JWTAuthenticationFilter;
 import com.library_manager.api.security.JWTAuthorizationFilter;
 import com.library_manager.api.security.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,7 +20,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.Arrays;
 
 @Configuration
@@ -56,6 +54,11 @@ public class SecurityConfig {
             "/login"
     };
 
+    @Value("${jwt.expiration}")
+    private Integer tokenExpirationHour;
+    @Value("${jwt.refresh.expiration}")
+    private Integer refreshTokenExpirationHour;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -80,7 +83,6 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationManager(authenticationManager)
-                .addFilter(new JWTAuthenticationFilter(authenticationManager, jwtUtil))
                 .addFilter(new JWTAuthorizationFilter(this.authenticationManager, this.jwtUtil, this.userDetailsService));
 
         return http.build();
@@ -95,6 +97,14 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authBuilder.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder());
+        return authBuilder.build();
+    }
+
 
 
     // SERVE PARA CRIPTOGRAFAR AS SENHAS
