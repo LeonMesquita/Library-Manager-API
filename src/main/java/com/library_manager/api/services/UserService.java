@@ -67,7 +67,6 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-
     public static void adminOrUserAuthenticated(Long id) {
 
         try {
