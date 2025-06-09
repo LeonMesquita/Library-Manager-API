@@ -8,10 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -25,4 +23,22 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(body));
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @GetMapping("/{id}")
+    public ResponseEntity<UserModel> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.findById(id));
+    }
+
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<UserModel> updateuser(@PathVariable Long id, @RequestBody @Valid UserDTO body) {
+        return ResponseEntity.ok(userService.update(id, body));
+    }
+
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<UserModel> deleteuser(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
