@@ -28,7 +28,7 @@ public class AdminUserInitializer {
             UserModel admin = new UserModel();
             admin.setName("admin");
             admin.setEmail(defaultAdminUsername);
-            admin.setPassword(bCryptPasswordEncoder.encode("new@admin")); // escolha uma senha segura
+            admin.setPassword(bCryptPasswordEncoder.encode("new@admin"));
             admin.setProfiles(Stream.of(ProfileEnum.ADMIN.getCode()).collect(Collectors.toSet()));
             userRepository.save(admin);
 
