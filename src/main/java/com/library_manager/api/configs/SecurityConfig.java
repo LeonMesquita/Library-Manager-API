@@ -1,6 +1,7 @@
-package com.library_manager.api;
+package com.library_manager.api.configs;
 import com.library_manager.api.exceptions.CustomAccessDeniedHandler;
 import com.library_manager.api.exceptions.CustomAuthenticationEntryPoint;
+import com.library_manager.api.security.CustomOAuth2SuccessHandler;
 import com.library_manager.api.security.JWTAuthorizationFilter;
 import com.library_manager.api.security.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,6 +38,9 @@ public class SecurityConfig {
     @Autowired
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+    @Autowired
+    private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+
 
     @Autowired
     private JWTUtil jwtUtil;
@@ -51,7 +56,8 @@ public class SecurityConfig {
     // Define as rotas POST que serão públicas
     private static final String[] PUBLIC_MATCHERS_POST = {
             "/users",
-            "/login"
+            "/login",
+            "/oauth2/**"
     };
 
     @Value("${jwt.expiration}")
@@ -68,6 +74,12 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+                .oauth2Login(Customizer.withDefaults())
+                .oauth2Login(oauth2 -> oauth2
+                        .defaultSuccessUrl("/books", true)
+                        .successHandler(customOAuth2SuccessHandler)
+                )
+                .formLogin(Customizer.withDefaults())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityContext(securityContext -> securityContext.requireExplicitSave(false))
                 .authorizeHttpRequests(auth -> auth
