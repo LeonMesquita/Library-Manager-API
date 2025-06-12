@@ -22,7 +22,7 @@ Uma API RESTful para gerenciamento de biblioteca com controle de empréstimos e 
 ![ref1]
 ## <a name="tecnologias-utilizadas"></a>📦 Como Rodar o Projeto
 ### <a name="clone-o-repositório"></a>1. Clone o repositório
-git clone https://github.com/seu-usuario/LibraryManagerAPI.git \
+git clone https://github.com/LeonMesquita/Library-Manager-API.git \
 cd LibraryManagerAPI
 ### 2\. Crie um arquivo .env na raiz com as variáveis de ambiente:
 \# PostgreSQL\
