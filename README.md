@@ -30,7 +30,7 @@ DB\_HOST=library\_manager\_db\
 DB\_PORT=5432\
 DB\_NAME=postgres\
 DB\_USERNAME=postgres\
-DB\_PASSWORD=112233\
+DB\_PASSWORD=postgres\
 \
 \# JWT\
 JWT\_SECRET=uma\_chave\_segura\
