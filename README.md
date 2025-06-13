@@ -54,8 +54,8 @@ A aplicação estará disponível em: http://localhost:8080
 Ao rodar a aplicação pela primeira vez, um usuário administrador é criado automaticamente:
 
 {\
-`  `"email": "admin@gmail.com",\
-`  `"password": "new@admin"\
+"email": "admin@gmail.com",\
+"password": "new@admin"\
 }
 
 
@@ -114,7 +114,7 @@ Filtros por título, autor, gênero e disponibilidade podem ser adicionados via 
 - Ao devolver um livro, sua disponibilidade é atualizada.
 - Apenas livros disponíveis podem ser emprestados.
 
-![ref1]
+
 ## <a name="regras-de-negócio"></a>📂 Estrutura do Projeto
 ├── src\
 │   ├── configs           # Configurações gerais
@@ -124,7 +124,7 @@ Filtros por título, autor, gênero e disponibilidade podem ser adicionados via 
 │   ├── repositories      # Interfaces de acesso a dados\
 │   ├── services          # Regras de negócio\
 │   ├── security          # Filtros de segurança e JWT\
-|   └── exceptions        # Tratamento global de erros\
+ |   └── exceptions        # Tratamento global de erros\
 ├── resources\ 
 │   └── application.properties   # Configurações gerais\
 ├── Dockerfile\
@@ -138,7 +138,6 @@ Filtros por título, autor, gênero e disponibilidade podem ser adicionados via 
 - Sistema de reservas
 - Frontend com React ou Angular
 
-![ref1]
 
 [ref1]: Aspose.Words.cc2608f4-7dd2-4eb3-a2e8-d630add526c3.001.png
 [ref2]: Aspose.Words.cc2608f4-7dd2-4eb3-a2e8-d630add526c3.002.png
