@@ -1,6 +1,7 @@
 package com.library_manager.api.services;
 
 import com.library_manager.api.dtos.BookDTO;
+import com.library_manager.api.exceptions.GenericBadRequestException;
 import com.library_manager.api.exceptions.GenericConflictException;
 import com.library_manager.api.exceptions.GenericNotFoundException;
 import com.library_manager.api.models.BookModel;
@@ -63,7 +64,7 @@ public class BookService {
         List<RentalModel> approvedRentals = rentalRepository.findAllByBookAndStatus(bookModel, StatusEnum.APPROVED);
 
         if (dto.getAmountTotal() < approvedRentals.size()) {
-            throw new GenericConflictException("A quantidade total não pode ser menor que a quantidade de aluguéis ativos!");
+            throw new GenericBadRequestException("A quantidade total não pode ser menor que a quantidade de aluguéis ativos!");
         }
 
         BeanUtils.copyProperties(dto, bookModel, "id");
