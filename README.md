@@ -63,7 +63,7 @@ Ao rodar a aplicação pela primeira vez, um usuário administrador é criado au
 
 Para testar os endpoints da aplicação, entre na página do Swagger: \
 http://localhost:8080/api/swagger-ui/index.html \
-Para utilizar as rotas autenticadas, execute o endpoint de login, clique no botão "Authorize" e copie o token gerado. \
+Para utilizar as rotas autenticadas, execute o endpoint de login, clique no botão "Authorize" e copie o token gerado.
 
 
 
